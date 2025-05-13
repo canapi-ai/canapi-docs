@@ -1,0 +1,953 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CANAPI Unified REST API",
+    "description": "CANAPI Unified REST API Specs for TMS, WMS, ERP, Inventory Management, Procurement, IoT Devices and Route Optimization.",
+    "contact": {
+      "name": "CANAPI Support",
+      "email": "support@canapi.ai"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://sandbox.api.canapi.ai",
+      "description": "Sandbox"
+    },
+    {
+      "url": "https://api.canapi.ai",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Common authentication endpoints"
+    },
+    {
+      "name": "TMS / Rating",
+      "description": "Get shipping quotes"
+    },
+    {
+      "name": "TMS / Orders",
+      "description": "Submit shipment orders"
+    },
+    {
+      "name": "TMS / Tracking",
+      "description": "Track shipments"
+    },
+    {
+      "name": "TMS / Documents",
+      "description": "Download shipment documents"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/auth/token": {
+      "post": {
+        "summary": "Authenticate and obtain JWT token",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "Username for login"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "User's password"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "JWT token to be used in Authorization header"
+                    },
+                    "expiresIn": {
+                      "type": "integer",
+                      "description": "Expiration time of the token in seconds"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Error code for unauthorized access"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Invalid token or login"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tms/v1/rating/quote": {
+      "post": {
+        "summary": "Get a shipping quote",
+        "tags": [
+          "TMS / Rating"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the shipment"
+                  },
+                  "class": {
+                    "type": "string",
+                    "description": "Freight class of the shipment"
+                  },
+                  "weight": {
+                    "type": "number",
+                    "description": "Weight in pounds"
+                  },
+                  "pallets": {
+                    "type": "integer",
+                    "description": "Number of pallets"
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "description": "Number of units across all pallets"
+                  },
+                  "nmfc": {
+                    "type": "string",
+                    "description": "NMFC classification code"
+                  },
+                  "originZip": {
+                    "type": "string",
+                    "description": "Origin ZIP code"
+                  },
+                  "destinationZip": {
+                    "type": "string",
+                    "description": "Destination ZIP code"
+                  },
+                  "shipDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Planned shipment date"
+                  },
+                  "transactionId": {
+                    "type": "string",
+                    "description": "Unique transaction ID"
+                  },
+                  "transportationMode": {
+                    "type": "string",
+                    "enum": [
+                      "LTL"
+                    ],
+                    "description": "Mode of transportation"
+                  }
+                },
+                "required": [
+                  "description",
+                  "class",
+                  "weight",
+                  "pallets",
+                  "quantity",
+                  "nmfc",
+                  "originZip",
+                  "destinationZip",
+                  "shipDate",
+                  "transactionId",
+                  "transportationMode"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Quote request successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "description": "List of available quotes",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "quoteId": {
+                            "type": "string",
+                            "description": "Unique ID of the quote"
+                          },
+                          "broker": {
+                            "type": "string",
+                            "enum": [
+                              "CHR",
+                              "SYFAN"
+                            ],
+                            "description": "Transportation broker used for the quote"
+                          },
+                          "carrierCode": {
+                            "type": "string",
+                            "description": "Carrier's code"
+                          },
+                          "carrierName": {
+                            "type": "string",
+                            "description": "Carrier's name"
+                          },
+                          "transitDays": {
+                            "type": "integer",
+                            "description": "Estimated transit days"
+                          },
+                          "totalCharge": {
+                            "type": "number",
+                            "format": "float",
+                            "description": "Total cost of shipment"
+                          },
+                          "serviceType": {
+                            "type": "string",
+                            "description": "Type of shipping service"
+                          },
+                          "serviceDescription": {
+                            "type": "string",
+                            "description": "Service level description"
+                          }
+                        },
+                        "required": [
+                          "quoteId",
+                          "broker",
+                          "carrierName",
+                          "transitDays",
+                          "totalCharge"
+                        ]
+                      }
+                    },
+                    {
+                      "description": "Empty array returned when no quotes are available",
+                      "type": "array",
+                      "items": {},
+                      "maxItems": 0
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Machine-readable error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Description of the error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Error code for unauthorized access"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Invalid token or login"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Access denied error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "You do not have permission to access this resource"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Resource not found"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "The requested resource does not exist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Internal error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "An unexpected error occurred"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tms/v1/orders/createOrderWithQuote": {
+      "post": {
+        "summary": "Create a new order with Quote Id",
+        "tags": [
+          "TMS / Orders"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quoteId": {
+                    "type": "string",
+                    "description": "Quote ID being converted to an order"
+                  },
+                  "broker": {
+                    "type": "string",
+                    "enum": [
+                      "CHR",
+                      "SYFAN"
+                    ],
+                    "description": "Transportation broker used for the quote"
+                  },
+                  "shipperNumber": {
+                    "type": "string",
+                    "description": "Unique number of the shipper"
+                  },
+                  "poNumber": {
+                    "type": "string",
+                    "description": "Customer purchase order number"
+                  },
+                  "shipperName": {
+                    "type": "string",
+                    "description": "Name of the shipper"
+                  },
+                  "shipperAddress": {
+                    "type": "string",
+                    "description": "Address of the shipper"
+                  },
+                  "shipperCity": {
+                    "type": "string",
+                    "description": "City of the shipper"
+                  },
+                  "shipperState": {
+                    "type": "string",
+                    "description": "State of the shipper"
+                  },
+                  "shipperZip": {
+                    "type": "string",
+                    "description": "ZIP code of the shipper"
+                  },
+                  "consigneeName": {
+                    "type": "string",
+                    "description": "Name of the consignee"
+                  },
+                  "consigneeAddress": {
+                    "type": "string",
+                    "description": "Address of the consignee"
+                  },
+                  "consigneeCity": {
+                    "type": "string",
+                    "description": "City of the consignee"
+                  },
+                  "consigneeState": {
+                    "type": "string",
+                    "description": "State of the consignee"
+                  },
+                  "consigneeZip": {
+                    "type": "string",
+                    "description": "ZIP code of the consignee"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Additional notes or instructions"
+                  }
+                },
+                "required": [
+                  "quoteId",
+                  "broker",
+                  "shipperNumber",
+                  "poNumber",
+                  "shipperName",
+                  "shipperAddress",
+                  "shipperCity",
+                  "shipperState",
+                  "shipperZip",
+                  "consigneeName",
+                  "consigneeAddress",
+                  "consigneeCity",
+                  "consigneeState",
+                  "consigneeZip"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Shipment order created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "orderNumber": {
+                      "type": "string",
+                      "description": "Carrier generated order number"
+                    },
+                    "trackingNumber": {
+                      "type": "string",
+                      "description": "Carrier assigned tracking number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Machine-readable error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Description of the error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Error code for unauthorized access"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Invalid token or login"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Access denied error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "You do not have permission to access this resource"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Resource not found"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "The requested resource does not exist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Internal error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "An unexpected error occurred"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tms/v1/tracking": {
+      "get": {
+        "summary": "Track shipment by carrier order number",
+        "tags": [
+          "TMS / Tracking"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderNumber",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique carrier defined identifier for the order"
+          },
+          {
+            "name": "broker",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["CHR", "SYFAN"]
+            },
+            "description": "Transportation broker used for the order"
+          },
+          {
+            "name": "trackingNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Carrier-assigned tracking number"
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Start date for tracking events"
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "End date for tracking events"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tracking info retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "eventDate": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Date and time of the event"
+                    },
+                    "eventStatus": {
+                      "type": "string",
+                      "description": "Status of the shipment at the event"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Machine-readable error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Description of the error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Error code for unauthorized access"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Invalid token or login"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Access denied error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "You do not have permission to access this resource"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Resource not found"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "The requested resource does not exist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Internal error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "An unexpected error occurred"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tms/v1/documents/invoice": {
+      "get": {
+        "summary": "Retrieve invoice document",
+        "tags": [
+          "TMS / Documents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderNumber",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique carrier defined identifier for the order"
+          },
+          {
+            "name": "broker",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["CHR", "SYFAN"]
+            },
+            "description": "Transportation broker used for the order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document retrived",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Machine-readable error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Description of the error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Error code for unauthorized access"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Invalid token or login"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Access denied error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "You do not have permission to access this resource"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Resource not found"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "The requested resource does not exist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Internal error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "An unexpected error occurred"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
