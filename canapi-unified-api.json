@@ -196,6 +196,13 @@
                       "LTL"
                     ],
                     "description": "Mode of transportation"
+                  },
+                  "scacPreferences": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "List of SCAC preferences to filter carriers"
                   }
                 },
                 "required": [
@@ -221,67 +228,59 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "description": "List of available quotes",
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "quoteId": {
-                            "type": "string",
-                            "description": "Unique ID of the quote"
-                          },
-                          "broker": {
-                            "type": "string",
-                            "enum": [
-                              "CHR",
-                              "SYFAN"
-                            ],
-                            "description": "Transportation broker used for the quote"
-                          },
-                          "carrierCode": {
-                            "type": "string",
-                            "description": "Carrier's code"
-                          },
-                          "carrierName": {
-                            "type": "string",
-                            "description": "Carrier's name"
-                          },
-                          "transitDays": {
-                            "type": "integer",
-                            "description": "Estimated transit days"
-                          },
-                          "totalCharge": {
-                            "type": "number",
-                            "format": "float",
-                            "description": "Total cost of shipment"
-                          },
-                          "serviceType": {
-                            "type": "string",
-                            "description": "Type of shipping service"
-                          },
-                          "serviceDescription": {
-                            "type": "string",
-                            "description": "Service level description"
-                          }
-                        },
-                        "required": [
-                          "quoteId",
-                          "broker",
-                          "carrierName",
-                          "transitDays",
-                          "totalCharge"
-                        ]
+                  "type": "array",
+                  "description": "List of available quotes",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "quoteId": {
+                        "type": "string",
+                        "description": "Unique ID of the quote"
+                      },
+                      "broker": {
+                        "type": "string",
+                        "enum": ["CHR", "SYFAN"],
+                        "description": "Transportation broker used for the quote"
+                      },
+                      "carrierCode": {
+                        "type": "string",
+                        "description": "Carrier's code"
+                      },
+                      "carrierName": {
+                        "type": "string",
+                        "description": "Carrier's name"
+                      },
+                      "transitDays": {
+                        "type": "integer",
+                        "description": "Estimated transit days"
+                      },
+                      "quoteExpirationDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Expiration date and time of the quote"
+                      },
+                      "totalCharge": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Total cost of shipment"
+                      },
+                      "serviceType": {
+                        "type": "string",
+                        "description": "Type of shipping service"
+                      },
+                      "serviceDescription": {
+                        "type": "string",
+                        "description": "Service level description"
                       }
                     },
-                    {
-                      "description": "Empty array returned when no quotes are available",
-                      "type": "array",
-                      "items": {},
-                      "maxItems": 0
-                    }
-                  ]
+                    "required": [
+                      "quoteId",
+                      "broker",
+                      "carrierName",
+                      "transitDays",
+                      "totalCharge"
+                    ]
+                  }
                 }
               }
             }
@@ -692,6 +691,13 @@
                     },
                     "eventStatus": {
                       "type": "string",
+                      "enum": [
+                        "Booked",
+                        "Canceled",
+                        "Loading",
+                        "Delivered",
+                        "InTransit"
+                      ],
                       "description": "Status of the shipment at the event"
                     }
                   }
